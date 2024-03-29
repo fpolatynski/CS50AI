@@ -112,7 +112,6 @@ def sample_pagerank(corpus, damping_factor, n):
     return distribution
 
 
-
 def iterate_pagerank(corpus, damping_factor):
     """
     Return PageRank values for each page by iteratively updating
@@ -122,7 +121,42 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    dist = {}
+    n = len(corpus)
+    # Set all ranks to same value
+    for x in list(corpus.keys()):
+        dist[x] = 1/n
+
+    while True:
+        i = 0
+        # Count new values fo every probability that changes
+        to_remove = set()
+        for page in corpus.keys():
+            # create list of pages that leads to page
+            parents = []
+            for p0, p1 in corpus.items():
+                if page in p1:
+                    parents.append(p0)
+            new_p = (1 - damping_factor)/len(corpus) + damping_factor * sum([dist[x]/len(corpus[x]) for x in parents])
+
+            if abs(new_p - dist[page]) < 0.00001:
+                i += 1
+            else:
+                dist[page] = new_p
+
+        if i == n:
+            break
+    return dist
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
