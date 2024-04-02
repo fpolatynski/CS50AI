@@ -139,7 +139,59 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    # Temp variable to store probability
+    probability = 1
+
+   # Loop while unvisited people exists
+    for name in people.keys():  # Loop threw all people
+        # Count for all people without parents
+        if people[f"{name}"]['mother'] is None and people[f"{name}"]['father'] is None:
+            # Get probability of people having or not having trait
+            if name in one_gene:
+                p = PROBS["gene"][1]
+            elif name in two_genes:
+                p = PROBS["gene"][2]
+            else:
+                p = PROBS["gene"][0]
+
+        # For people with parents
+        else:
+            father = people[f"{name}"]['father']
+            mother = people[f"{name}"]['mother']
+
+            # Probabilities of father and mother having cartain number of genes
+            p_father_0 = PROBS["mutation"] if father in two_genes else (0.5 if father in one_gene else 1 - PROBS["mutation"])
+            p_father_1 = 1 - p_father_0
+            p_mother_0 = PROBS["mutation"] if mother in two_genes else (0.5 if mother in one_gene else 1 - PROBS["mutation"])
+            p_mother_1 = 1 - p_mother_0
+
+            if name in one_gene:
+                p = p_father_1 * p_mother_0 + p_father_0 * p_mother_1
+            elif name in two_genes:
+                p = p_father_1 * p_father_1
+            else:
+                p = p_father_0 * p_father_0
+
+        # Probability of gene having trait or not having
+        if name in one_gene:
+            if name in have_trait:
+                p *= PROBS["trait"][1][True]
+            else:
+                p *= PROBS["trait"][1][False]
+        elif name in two_genes:
+            if name in have_trait:
+                p *= PROBS["trait"][2][True]
+            else:
+                p *= PROBS["trait"][2][False]
+        else:
+            if name in have_trait:
+                p *= PROBS["trait"][0][True]
+            else:
+                p *= PROBS["trait"][0][False]
+        # update probability
+        probability *= p
+
+    return probability
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,7 +201,17 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    for person in probabilities.keys():
+        if person in one_gene:
+            probabilities[person]["gene"][1] += p
+        elif person in two_genes:
+            probabilities[person]["gene"][2] += p
+        else:
+            probabilities[person]["gene"][0] += p
+        if person in have_trait:
+            probabilities[person]["trait"][True] += p
+        else:
+            probabilities[person]["trait"][False] += p
 
 
 def normalize(probabilities):
@@ -157,7 +219,15 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+
+    for person in probabilities.keys():
+        suma = sum(list(probabilities[person]["gene"].values()))
+        for k in probabilities[person]["gene"].keys():
+            probabilities[person]["gene"][k] /= suma
+
+        suma = sum(list(probabilities[person]["trait"].values()))
+        for k in probabilities[person]["trait"].keys():
+            probabilities[person]["trait"][k] /= suma
 
 
 if __name__ == "__main__":

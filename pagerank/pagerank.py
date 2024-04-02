@@ -149,15 +149,5 @@ def iterate_pagerank(corpus, damping_factor):
     return dist
 
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     main()
